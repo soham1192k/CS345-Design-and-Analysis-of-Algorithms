@@ -1,0 +1,323 @@
+\documentclass{article}
+% Formatting
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage[titletoc,title]{appendix}
+\def\code#1{\texttt{#1}}
+\usepackage{listings}
+\usepackage{color}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\newcommand{\forcond}{$i=0$ \KwTo $n$}
+\SetKwProg{Fn}{Function}{}{end}\SetKwFunction{FRecurs}{fasterNDP}%
+\SetAlgoLongEnd
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{frame=tb,
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  stepnumber=1,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  frame=shadowbox,
+  rulesepcolor=\color{gray}
+}
+% Math
+% https://www.overleaf.com/learn/latex/Mathematical_expressions
+% https://en.wikibooks.org/wiki/LaTeX/Mathematics
+\usepackage{amsmath,amsfonts,amssymb,mathtools}
+
+% Images
+% https://www.overleaf.com/learn/latex/Inserting_Images
+% https://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions
+\usepackage{graphicx,float}
+\usepackage{hyperref}
+% Tables
+% https://www.overleaf.com/learn/latex/Tables
+% https://en.wikibooks.org/wiki/LaTeX/Tables
+
+% Algorithms
+% https://www.overleaf.com/learn/latex/algorithms
+% https://en.wikibooks.org/wiki/LaTeX/Algorithms
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{algorithmic}
+
+% Code syntax highlighting
+% https://www.overleaf.com/learn/latex/Code_Highlighting_with_minted
+\usepackage{minted}
+\usemintedstyle{borland}
+\usepackage[T1]{fontenc}
+% References
+% https://www.overleaf.com/learn/latex/Bibliography_management_in_LaTeX
+% https://en.wikibooks.org/wiki/LaTeX/Bibliography_Management
+\usepackage{biblatex}
+\addbibresource{references.bib}
+
+% Title content
+\title{CS345 Assignment-1}
+\author{Ayush Shakya \\180178 \and Soham Ghosal \\180771}
+\date{August 20, 2021}
+
+\begin{document}
+
+\maketitle
+% intro/ objectives 
+% sketch of algorithm (Assumptions in bold)
+% pseudocode (template dhundo)
+% proof of correctness
+% time complexity analysis
+
+% Introduction and Objectives
+\vspace{0.75cm}
+\section{Faster algorithm for Non-Dominated Points in plane}
+In the lecture, two approaches were discussed to evaluate non-dominated points in a plane. The first approach was \textbf{output sensitive}and worked in a time-complexity of $O(N*h)$ where h is the number of dominated points in the \textbf{plane consisting of N points}. This algorithm was $O(N)$ in best case but $O(N^2)$ in the worst case.
+\par
+We then improved this approach to $O(NlogN)$. This new algorithm was based on \textbf{divide-and-conquer paradigm}, but there were scenarios where the first algorithm could outperform the second algorithm. In this assignment, we devise an algorithm with a \textbf{time complexity of $O(Nlogh)$} which is faster than both these algorithms, specifically in cases where the number of non-dominated points are very few. As mentioned in the problem statement, it can be shown that if n points are selected randomly uniformly from a unit square, then the expected(average) number of non-dominated points is just $O(log n)$.
+\vspace{1cm}
+%  Sketch of Algorithm
+\section{Sketch of Algorithm}
+
+\subsection{Assumptions}
+\begin{itemize}
+    \item We assume that no two points in the plane have \textbf{same x-coordinate} or \textbf{the same y-coordinate}.
+    \item There will be only one point on the vertical line passing through the median of x- coordinate of the given points.
+    \item We define the x-median to be the median of x coordinates of all given points-in case there are even number of points, we take the floor of the actual median.
+    \item The set of points S received as an argument to the function is has a non-zero size.
+\end{itemize}
+
+\subsection{Intuition}
+We begin by computing the x-median of the input points, and splitting the given sample space into two halves, via a vertical line passing through the x-median\textbf{ [Divide Step]}.The median can be computed using an $O(N)$ algorithm, as discussed in class. Since we are splitting on the basis of x-median, the sizes of the two halves \textbf{would differ by at most one}. Let's call these partitions \textbf{left set(LS)} and \textbf{right set(RS)}.
+
+We invoke a recursive call to the divide function for the right set. Among all those points, we choose the point with maximum value of y-coordinate. Let the y-coordinate of this point be $y_{max}$.
+\par
+We collect all the points in the left set whose y-coordinate is greater than $y_{max}$. Unless this set is empty, we invoke another recursive call for this left set.
+
+% Pseudocode
+\newpage
+\section{Pseudocode}
+% \begin{algorithm}
+% 	\caption{Faster algorithm to find NDP in plane} 
+% 	\begin{algorithmic}[1]
+% 	    \Function {fasterNDP}{S}
+% 	        \State \var{xm} \gets \func{getmaxx} (S), \var{ym} \gets \func{getmaxy}(S)
+% 	        \State pmax \gets (xm,ym)
+%             \State \If {p_{max} \in s} 
+%             \State \Return %$p_{max}$
+%             \EndIf
+% 	    \EndFunction
+% 	\end{algorithmic} 
+% \end{algorithm}
+
+% \begin{algorithm}[H]
+% \DontPrintSemicolon
+%     \Function{fasterNDP}{$S$}
+%         \State \var{xm} \gets \func{getmaxx} (S), \var{ym} \gets \func{getmaxy}(S)
+%         \State pmax \gets (xm,ym)
+%         \State \If {p_{max} \in s} 
+%     \EndFunction
+%     \Function{Increment}{$a$}
+%     \State $a \gets a+1$
+%     \State \Return $a$
+% \EndFunction
+% $t=0$\\
+% $w_{2}^{0}=w_{0}$\\
+% \While{not converged}
+% {
+% $w_{1}^{(t+1)}=argmin_{w1}\cL(w_{1},w_{2}^{(t)})$\\
+% $w_{2}^{(t+1)}=argmin_{w2}\cL(w_{1}^{(t+1)},w_{2}$\\
+% $t=t+1$
+% }
+% \textbf{end}
+% \end{algorithm}
+
+\begin{algorithm}
+\Fn(){\FRecurs{S}}
+{
+% \KwData{Some input data\\these inputs can be displayed on several lines and one
+% input can be wider than line’s width.}
+% \KwResult{Same for output data}
+% \tcc{this is a comment to tell you that we will now really start code}
+    $x_{m}$ \gets $getmax_x(S)$, $y_m$ \gets $getmax_y(S)$ \tcc{Can be done in O(N) time}
+    \\
+    $p_{max}$ \gets $(x_m, y_m)$
+    \\
+    $finalNDP \gets \emptyset$ \tcc{List to store all non-dominated points}
+    \\
+    \tcc{Base Case:If $x_m$ and $y_m$ correspond to a single point in the set, then there are no more non-dominated points, since this point encompasses all others.}
+    \If(){$p_{max} \in S$} 
+    {
+        finalNDP.push($p_{max}$)\\
+        \Return finalNDP
+    }
+    \\
+    
+    $(LS,RS) \gets SplitByMedian(S)$ \tcc{Can be done in O(N) time}
+    \\
+    $rightNDP \gets fasterNDP(RS)$ \tcc{Recursive call on the right set}
+    \\
+    $y_{max} \gets getmax_y(rightNDP)$ \tcc{Can be done in O(N) time}
+    \\
+    $reduced_{LS} \gets \emptyset$ \tcc{List to store the candidate points from the left set}
+    \\
+    \tcc{We iterate on the left set and add only those points whose y-coordinate is greater than $y_{max}$}
+    \For(){point p $\in$ LS}
+    {
+        \If(){p.y $>$ $y_{max}$} 
+        {
+            $reduced_{LS}$.push(p)
+        }
+    }
+    
+    finalNDP.push(rightNDP)
+    
+    \If() {$reduced_{LS}.size$ $>$ 0} {
+        $leftNDP \gets fasterNDP(reduced_{LS})$ \tcc{Recursive call on the left set}
+        \\
+        finalNDP.push(leftNDP)
+    }
+    
+    \Return finalNDP 
+
+
+}
+\caption{Faster Algorithm for non-dominated points}
+\end{algorithm}
+%ujefuierguiegre
+% \begin{algorithm}
+% \Fn(){\FRecurs{S}}{
+% % \KwData{Some input data\\these inputs can be displayed on several lines and one
+% % input can be wider than line’s width.}
+% % \KwResult{Same for output data}
+% % \tcc{this is a comment to tell you that we will now really start code}
+    
+%     $x_{m}$ \gets $getmax_x(S)$, $y_m$ \gets $getmax_y(S)$ 
+%     \\
+%     $p_{max}$ \gets $(x_m, y_m)$
+%     \\
+%     finalNDP \gets \emptyset
+%     \\
+    
+%     \If(){$p_{max} \in S$}{
+%          finalNDP.push($p_{max}$)\\
+%         \Return finalNDP
+%     }
+    
+%     (LS,RS) \gets SplitByMedian(S)
+%     \\
+%     rightNDP \gets fasterNDP(RS)\\
+%     $y_{max}$ \gets $getmax_y$(rightNDP)\\
+%     $reduced_{LS}$ \gets \emptyset
+%     \\
+    
+%     \For(){point $p \in LS$}
+%     {
+%         \If(){p.y $> y_{max}$}
+%         {
+%             $reduced_{LS}$.push(p)
+%         }
+%     }
+    
+%     finalNDP.push(rightNDP)
+    
+%     % \tcc{now loops}
+%     % \For{\forcond}{
+%     % a for loop\;
+%     % }
+
+%     \If(){$reduced_{LS}$.size $>$ 0}{
+%         leftNDP \gets fasterNDP($reduced_{LS}$)\\
+%         finalNDP.push(leftNDP)
+%     }
+
+%     finalNDP.push(rightNDP)
+    
+%     % \If() {reduced_{LS}.size $>$ 0} {
+%     %     leftNDP \gets fasterNDP(reduced_{LS})\\
+%     %     finalNDP.push(leftNDP)
+%     % }
+    
+%     \Return finalNDP
+
+% }
+% \caption{Faster Algorithm for non-dominated points}
+% \end{algorithm}
+%nrgirgirg
+
+\section {Proof of Correctness}
+
+First we consider the base case. Since we assumed that x-coordinate and y-coordinate of all points are unique, if there exists a point whose both x-coordinate and y-coordinate are maximum among all points in that current set, it dominates all other points in that set(since, it encompasses all other points). Hence it is the only non-dominated point in the given set and we return it as an answer and exit from the recursive call.
+\par
+Next, we need to prove that set of points $rightNDP$ obtained in recursive call on right set(RS) are non-dominated points. Since their x-coordinates are greater than all the points in the left set(LS), they are non-dominated with respect to the points in the left set, and we already know, they are non-dominated among themselves. Thus we add $rightNDP$ into the final list of non-dominated points.
+\par
+For the left part, we construct a set of points $reduced_{LS}$ whose y-coordinate is greater than $y_{max}$. This means these points are not dominated by any point in right set(RS). After a recursive call on this set, we get a set of non-dominated points $leftNDP$ among the $reduced_{LS}$. We already proved that these points are not dominated by right set(RS) due to the condition that their y-coordinate is greater than $y_{max}$, and after the recursive call, we know that they are non-dominated among themselves. Hence, this set of points also holds the non-dominated conditions for the current set S. Thus we add $leftNDP$ into the final list of non-dominated points and return this as an answer.
+\newpage
+\section {Time Complexity Analysis}
+
+We try to analyse the time complexity using induction. Let T(h) denote the time-complexity of the proposed function when there are exactly "h" non-dominated points among the current set of points S, of size N. The functions $getmax_{x}$, $getmax_{y}$ and $p_{max}$ checking condition,  x-median calculation and splitting in LS and RS, filtering points on basis of $y_{max}$ and add to final list are linear time functions in N. So, for cases where h=1, the time complexity is O(N) (Since log(1)=0).\\Note that, after division of the sample space into two halves, there might be an arbitrary number of non-dominated points in the left half(let's call this $h_{1}$), and as a consequence, the number of non-dominated points in the right half would be $h-h_{1}$. Keeping this in mind, we would have to recur on the left half(containing n/2 points) and the right half(containing n/2 points).Thus the time complexity when there are h non-dominated points would be bounded by the maximum of all such divisions, hence the recurrence relation (equation 2).
+\vspace{2mm}\\The inductive hypothesis is assumed to be as follows :
+\begin{center}
+    \begin{equation}
+    \textbf{Induction Hypothesis} : \framebox[1.1\width]{T(h) \leq  c*(N + N*log_2(h))} \hspace{2mm}\textbf{for N points}.
+    \end{equation}
+\end{center}
+\begin{flushleft}
+When left set(LS) is completely deleted by $y_{max}$, the size of h is 0. For such a case, T(h) for any size of N is 0. For the case of h=1, the algorithm is simply linear time due to the $p_{max}$ if condition.
+\end{flushleft}
+The recurrence relation for this pseudocode can be written as :
+\begin{center}
+\begin{equation}
+        \framebox[1.1\width]{T(h) \leq  max ( T(h_1) + T(h-h_1) + c_1*N ) \hspace{2mm}\forall\hspace{2mm}{0 \leq h_{1} \leq h} }
+\end{equation}
+
+\end{center}
+Please note that T(h) is defined for all N points, but T($h_{1}$), T($h-h_{1}$) are defined for N/2 points. Value of $h_{1}$ can vary from 0 to N, thus, we need to take the max of all the right recurrences and compare it with the T(h) for N points.
+
+\begin{center}
+\begin{equation}
+        \framebox[1.1\width]{T(h_1) \leq c*(N/2 + N/2*log_2(h_1)) \hspace{2mm}\text{and} \hspace{2mm}T(h-h_1) \leq c*(N/2 + N/2*log_2(h_1))}
+\end{equation}
+\end{center}
+
+Let us substitute these induction hypothesis for N/2 points into equation 2.
+\begin{center}
+        T(h) \leq  $max ( T(h_1) + T(h-h_1) + c_1*N ) \hspace{2mm}\forall\hspace{2mm}{0 \leq h_{1} \leq h}$ \vspace{2mm}\\\textbf{=>}T(h) \leq $ max ( c*(N/2 + N/2*log_2(h_1) + c*(N/2 + N/2*log_2(h_1)) + c_1*N ) \hspace{2mm}\forall\hspace{2mm}{0 \leq h_{1} \leq h} $
+        \vspace{2mm}\\\textbf{=>}T(h) \leq $ max ( (c+c_1)*N + c*N/2*(log_2(h_1*(h-h_1))) ) \hspace{2mm}\forall\hspace{2mm}{0 \leq h_{1} \leq h} $
+\end{center}
+
+
+
+
+
+
+
+
+
+The ($c+c_{1}$) component is independent of $h_{1}$. It can be easily shown through differentiation that the max value of $h_{1} * h-h_{1}$ is achieved at $h_{1} = h/2$, which gives the value of $h_{1} * h-h_{1} = h^{2}/4$. If h is an odd number, then too the value of $h_{1} * h-h_{1} < h^{2}/4$. Thus, we can say that, $h_{1} * h-h_{1} \leq h^{2}/4$. $log_2(x)$ is a monotonically increasing function in x (input). So we can say: \vspace{3mm}
+\begin{center}
+T(h) \leq $ max ( (c+c_1)*N + c*N/2*(log_2(h^2/4))  $
+\vspace{2mm}\\
+=>T(h) \leq $ max ( (c+c_1)*N + c*N*(log_2(h/2))  $
+\vspace{2mm}\\
+=>T(h) \leq $ max ( (c+c_1)*N + c*N*(log_2(h)-1))  $
+\vspace{2mm}\\
+=>T(h) \leq $ max ( c_1*N + c*N*(log_2(h)))  $
+\end{center}
+
+We can always choose a \textbf{c which is greater than $c_{1}$}. On doing so, we get the desired bound:
+\begin{center}
+\framebox[1.1\width]{T(h) \leq  c*N(1 + log_2(h)) \hspace{2mm} \text{where c\geq $c_{1}$}}
+\\
+\vspace{3mm}
+Thus, our initial hypothesis is true; the time complexity of the proposed algorithm is $\textbf{O(Nlog h)}$. 
+\end{center}
+\end{document}
