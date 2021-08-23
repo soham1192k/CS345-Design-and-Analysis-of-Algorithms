@@ -6,5 +6,5 @@ This repository contains the submissions for the assignments, quizzes and exams,
  - [Ayush Shakya]
 
 ## Course Instructor
- -[Dr. Surender Baswana](https://www.cse.iitk.ac.in/users/sbaswana/)
+ - [Dr. Surender Baswana](https://www.cse.iitk.ac.in/users/sbaswana/)
 
