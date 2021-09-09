@@ -3,7 +3,7 @@ This repository contains the submissions for the assignments, quizzes and exams,
 
 ## Collaborators
  - [Soham Ghosal](https://github.com/soham1192k)
- - [Ayush Shakya]
+ - [Ayush Shakya](https://github.com/ayushakya2000)
 
 ## Course Instructor
  - [Dr. Surender Baswana](https://www.cse.iitk.ac.in/users/sbaswana/)
