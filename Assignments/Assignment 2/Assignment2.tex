@@ -1,0 +1,209 @@
+\documentclass{article}
+% Formatting
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage[titletoc,title]{appendix}
+\def\code#1{\texttt{#1}}
+\usepackage{listings}
+\usepackage{color}
+%\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+%\newcommand{\forcond}{$i=0$ \KwTo $n$}
+%\SetKwProg{Fn}{Function}{}{end}\SetKwFunction{FRecurs}{minCostPaths}%
+%\SetAlgoLongEnd
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{frame=tb,
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  stepnumber=1,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  frame=shadowbox,
+  rulesepcolor=\color{gray}
+}
+% Math
+% https://www.overleaf.com/learn/latex/Mathematical_expressions
+% https://en.wikibooks.org/wiki/LaTeX/Mathematics
+\usepackage{amsmath,amsfonts,amssymb,mathtools}
+
+% Images
+% https://www.overleaf.com/learn/latex/Inserting_Images
+% https://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions
+\usepackage{graphicx,float}
+\usepackage{hyperref}
+% Tables
+% https://www.overleaf.com/learn/latex/Tables
+% https://en.wikibooks.org/wiki/LaTeX/Tables
+
+% Algorithms
+% https://www.overleaf.com/learn/latex/algorithms
+% https://en.wikibooks.org/wiki/LaTeX/Algorithms
+%\usepackage[ruled,vlined]{algorithm2e}
+%\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+
+% Code syntax highlighting
+% https://www.overleaf.com/learn/latex/Code_Highlighting_with_minted
+\usepackage{minted}
+\usemintedstyle{borland}
+\usepackage[T1]{fontenc}
+% References
+% https://www.overleaf.com/learn/latex/Bibliography_management_in_LaTeX
+% https://en.wikibooks.org/wiki/LaTeX/Bibliography_Management
+\usepackage{biblatex}
+\addbibresource{references.bib}
+
+% Title content
+\title{CS345 Assignment-2}
+\author{Ayush Shakya \\180178 \and Soham Ghosal \\180771}
+\date{October 01, 2021}
+
+\begin{document}
+
+\maketitle
+% intro/ objectives 
+% sketch of algorithm (Assumptions in bold)
+% pseudocode (template dhundo)
+% proof of correctness
+% time complexity analysis
+
+% Introduction and Objectives
+\vspace{0.25cm}
+\section{Aim}
+In this problem, we have been given a sequence of graphs $G[0]$,$G[1]$..$G[b]$, where each of these graphs $G[i]$ is connected and is defined as the tuple $(V,E_{i})$. Our aim is to come up with a polynomial time algorithm to find a sequence of paths $res[0]$,$res[1]$..$res[b]$ with the minimum cost keeping in mind the length of paths and the frequency of changes in the path structure.
+\par
+For some constant $K>0$, we define the cost of optimal path sequence $res[0] ,res[1] ,res[2] ,...res[b]$ to be:
+\begin{center}
+    cost($res[0]$,$res[1]$,...$res[b]$) = 
+$\displaystyle \sum _{i=0}^{b} len(res[i]) +K*changes( res[0] ,res[1] ,res[2] ,...res[b])_{\ }$
+\end{center}
+Here we define the $l(res[i])$ to be the number of edges in the optimal path $res[i]$ and \\ $changes(res[0] ,res[1] ,res[2] ,...res[b])$ to be the number of indices i such that $0 \leq i \leq b-1$, where \\ $res[i] \neq res[i+1]$ (i.e. atleast one element in both the arrays differs).
+
+\vspace{0cm}
+
+
+%  Sketch of Algorithm
+\section{Sketch of Algorithm}
+
+\subsection{Intuition}
+In order to reconstruct the sequence of paths with the minimum cost, we first need to determine the minimum cost of the optimal sequence of paths. An argument as to why greedy is not the right approach here, can be: At each step the cost function depends on both K as well as the sum of $l(res[i])$. If K is some large constant, then the product dominates and if K is some small constant, then the summation term dominates. Hence, we can never break it into a smaller subproblem of some predetermined size in terms of b. We need to consider the costs of all subproblems, before making a decision as to which index should be last changed to minimise the cost. 
+
+\subsection{Notations}
+\begin{itemize}
+    \item $G_{intersection}$ : For a particular run of i (line 6) and j (line 8), $G_{intersection}$ represents $(V,E_{i} \cap E_{i+1} ... \cap E_{j})$
+    \item $P[i][j]$ : represents the shortest path between s and t in the graph $G_{intersection}$ upon BFS traversal
+    \item $l[i][j]$ : represents the length of shortest path between s and t in $G_{intersection}$, i.e. $l[i][j]$ = $|P[i][j]|$ -1
+    \item $costDP[i]$ : to hold minimum cost corresponding to the optimal paths obtained from G[0...i]
+    \item $diffDP[i]$ : to hold the rightmost index on G[0...i] which differs from the previous optimal path.
+    \item $res$ : array to hold the optimal(of min. cost) sequence of paths, while considering G[0..b]
+\end{itemize}
+
+% Pseudocode
+\newpage
+\section{Pseudocode}
+
+\begin{algorithm}
+\caption{Algorithm to compute a sequence of paths with minimum cost}\label{euclid}
+\begin{algorithmic}[1]
+\Procedure{minCostPaths}{$G,K,s,t$} \Comment{G is an array of all b graphs}
+    \State $b \gets size(G)$
+    \For{$0 \leq i \leq b$}
+        \For{$ \texttt{every vertex v} \in G[i]$}
+            \State $\textbf{sort}(G[i][v])$
+        \EndFor
+    \EndFor
+    \For{$0 \leq i \leq b$}
+        \State $G_{intersection} \gets G[i]$
+        \For{$i \leq j \leq b$}
+            \State $G_{intersection} \gets G_{intersection}\cap G[j]$
+            \State $(l[i][j],P[i][j] ) \gets \textbf{BFS}(G_{intersection},s,t)$
+        \EndFor
+     \EndFor
+     \For{$0 \leq i \leq b$}
+        \State $costDP[i] \gets l[0][i]*(i+1)$
+        \State $diffDP[i] \gets -\infty$
+        \For{$0 \leq j \leq i-1$}
+            \State $currentCost \gets costDP[j]+l[j+1][i]*(i-j)+K$
+            \If{$currentCost < costDP[i]$}
+                \State $costDP[i] \gets currentCost$
+                \State $diffDP[i] \gets j$
+            \EndIf
+        \EndFor
+     \EndFor
+     
+    \State $v \gets b$
+    \While{$True$} \Comment{Reconstructing the optimal sequence of paths}% can we replace it with true ?? earlier : v \geq 0
+        \State $temp \gets diffDP[v]$
+        \If{$temp \neq -\infty$}
+            \For{$temp \leq i \leq v$}
+                \State $res[i] \gets P[temp][v]$
+            \EndFor
+            \State $v=temp-1$
+        \Else
+            \For{$0 \leq i \leq v$}
+                \State $res[i] \gets P[0][v]$
+            \EndFor
+            \State $break$
+        \EndIf
+    \EndWhile
+    \State \textbf{return} $res$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+
+\section {Proof of Correctness}
+\subsection{Recurrence Relation}
+\textbf{Base Case : } Consider the case when b=0. In this case, we only have 1 graph, ie. $G[0]$. Since $G[0]$ is connected (given), there definitely exists atleast one s-t path in $G[0]$. The shortest s-t path in $G[0]$ will be obtained in $P[0][0]$, and its length will be $l[0][0]$. Now inside the for loop (line 11), $costDP[0]$ will be assigned $l[0][0]*1$ and $diffDP[0]$ will be assigned $-\infty$ which implies no change in the path, as expected. The res array finally stores the same path which is obtained in $P[0][0]$, which is also the expected optimal path, since we only have 1 graph.
+%\par
+\vspace{2mm}
+\\
+\textbf{Recurrence : } Since $G[i]$ is connected $\forall$ i $\in$ [0..b], we can be sure that there exists at least one s-t path in every $G[i]$. Now, for some arbitrary i $\in$ [0..b], if there is no change in the expected paths $res[0], res[1], ...res[b]$ then the expected result would be $cost(res[0], res[1], ...res[b])$ = $(i+1)*l[0][0] + K*(0)$. The factor of $K*0$ comes in because we have 0 changes among $res[0], res[1], ...res[b]$. Now, our algorithm calculates the currentCost variable to be $(j+1)*l[0][j] + l[j+1][i]*(i-j) + K$ (since $cost[j]=(j+1)*l[0][j]$ according to our induction hypothesis). This means that currentCost will always be greater than $costDP[i]$, hence our algorithm saves the result just like the base case, i.e., no change and all res[i] would have the optimal paths, stored in $P[0][0]$ (all the $P[i][j]$ would be same as $P[0][0]$, since no change ever occurred).
+\par
+Let's now consider the case where \textbf{not} all expected paths $res[0], res[1], ...res[i]$ are the same, i.e. atleast one change occurs in the sequence of optimal paths. According to our notation, $diffDP[i]$ represents the rightmost index on $G[0..i]$ where there is a change in the sequence of optimal paths. Now, optimal cost must be :
+\begin{center}
+$cost(res[0], res[1], ...res[b]) = cost(res[0],...,res[diffDP[i]])+l[diffDP[i]+1][i]*(i-diffDP[i])+K$
+\end{center}
+Here, $cost(res[0],...,res[diffDP[i]])$ takes care of all the changes before i. To account for that one change in the path between $G[diffDP[i]]$ and $G[diffDP[i]+1]$, we add a K. Finally, since no more changes occur from $diffDP[i]+1$ to i, their length costs are simply summed up. In order to come up with this cost, we need to find $diffDP[i]$, which minimizes the expected cost. To do this, we simply loop over all possible values of $diffDP[i]$, i.e., 0 to i-1 to consider all possible values of costs choosing minimum among them.
+\vspace{2mm}
+\\
+The final recurrence, combining both the above cases can be written as:
+\begin{center}
+\framebox[1.1\width]{
+    $costDP[i]=min\big((i+1)*l[0][i],\min_{0 \leq j \leq i-1}(costDP[j]+((i-j)*l[j+1][i])+K)\big)$}
+\end{center}
+
+\subsection{Substructure optimality proof}
+
+The number of changes in the optimal solution is the number of subsections we have to break our problem into, where each subsection has the same path (hence a simple result). To get these subections, we break our problem into a subsection (from $diffDP[i]+1$ to i) and a smaller subproblem (mincost of $res[0...diffDP[i]]$). The subsection will trivially give an optimal solution, and we are left to calculate the optimal smaller subproblem which is similar to our original problem. Since we are calculating DP in a bottom-up fashion, if we claim that smaller subproblem gives an optimal solution, and our subsection (from $diffDP[i]+1$ to i) also gives optimal results(trivially), then we can claim that their sum gives us the optimal solution to our original (bigger) problem. It should be noted that the subproblem and subsection are independent, which is crucial in our claim of optimality. Base case for this situation would be when we hit no change, which reduces the entire problem into a subsection whose optimal solution can be found trivially. Hence, we have shown how the original problem can be broken into simpler and calculable subproblem and subsection.
+
+
+\section {Time Complexity Analysis}
+We assume that the graphs have been given to us in the form of adjacency lists. We start by sorting the adjacency list of every vertex, in all of the graphs present in G array. To do this, we can use merge sort, which is based on divide and conquer paradigm. Assuming that m is max($|E_{i}|$) $\forall i \in [0...b]$ and n is $|V|$. The time complexity of this step would be $O(b*m*log n)$. The next step involves computing $G_{intersection}$ where we are using two nested for loops, each of size (b+1). Inside these loops, we perform intersection and BFS operations. Since we are using a sorted list structure, the intersection would take O(m+n). The BFS function returns the length and path in a given graph from s to t, which takes O(m+n) time.  Thus, the time complexity of this step is : $O(b^{2}*(m+n))$.
+\begin{center}
+% \begin{equation}
+\framebox[1.1\width]{ Time Complexity of Preprocessing : $O(b^2*(m+n) +  b*m*log n)$}
+% \end{equation}
+\end{center}
+
+\par Then, we calculate $costDP[i]$ and $diffDP[i]$ $\forall i \in [0..b]$. For each i, we run a loop from [1..i), in which we perform only $O(1)$ operations (assignment and comparison, O(1) each). Thus, the time complexity of this step is $O(b^{2})$. To retrieve the paths from diffDP array, we run a while loop whose number of iterations are bounded by O(b). Inside the loop, we make assignments to res in a for loop. Such assignments are again bounded by O(b). Thus, the time complexity of this while subsection is bounded by $O(b^2)$. Note that this is a loose upper bound.
+
+\begin{center}
+%\begin{equation}
+\framebox[1.1\width]{ Time Complexity of Processing : $O(b^{2})$}
+%\end{equation}
+\end{center}
+\end{document}
