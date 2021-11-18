@@ -1,0 +1,273 @@
+\documentclass{article}
+% Formatting
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage[titletoc,title]{appendix}
+\def\code#1{\texttt{#1}}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{mdframed}
+%\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+%\newcommand{\forcond}{$i=0$ \KwTo $n$}
+%\SetKwProg{Fn}{Function}{}{end}\SetKwFunction{FRecurs}{minCostPaths}%
+%\SetAlgoLongEnd
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{frame=tb,
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  stepnumber=1,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  frame=shadowbox,
+  rulesepcolor=\color{gray}
+}
+% Math
+% https://www.overleaf.com/learn/latex/Mathematical_expressions
+% https://en.wikibooks.org/wiki/LaTeX/Mathematics
+\usepackage{amsmath,amsfonts,amssymb,mathtools}
+
+% Images
+% https://www.overleaf.com/learn/latex/Inserting_Images
+% https://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions
+\usepackage{graphicx,float}
+\usepackage{hyperref}
+% Tables
+% https://www.overleaf.com/learn/latex/Tables
+% https://en.wikibooks.org/wiki/LaTeX/Tables
+
+% Algorithms
+% https://www.overleaf.com/learn/latex/algorithms
+% https://en.wikibooks.org/wiki/LaTeX/Algorithms
+%\usepackage[ruled,vlined]{algorithm2e}
+%\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+
+% \newcommand{\sfunction}[1]{\textsf{\textsc{#1}}}
+% \algrenewcommand\algorithmicforall{\textbf{foreach}}
+% \algrenewcommand\algorithmicindent{.8em}
+
+% Code syntax highlighting
+% https://www.overleaf.com/learn/latex/Code_Highlighting_with_minted
+\usepackage{minted}
+\usemintedstyle{borland}
+\usepackage[T1]{fontenc}
+% References
+% https://www.overleaf.com/learn/latex/Bibliography_management_in_LaTeX
+% https://en.wikibooks.org/wiki/LaTeX/Bibliography_Management
+\usepackage{biblatex}
+\addbibresource{references.bib}
+
+% Title content
+\title{CS345 Assignment-3}
+\author{Ayush Shakya \\180178 \and Soham Ghosal \\180771}
+\date{November 13, 2021}
+
+\begin{document}
+
+\maketitle
+% intro/ objectives 
+% sketch of algorithm (Assumptions in bold)
+% pseudocode (template dhundo)
+% proof of correctness
+% time complexity analysis
+
+% Introduction and Objectives
+\vspace{0.25cm}
+\section{Aim}
+In this problem, we have to come up with an algorithm for a modified version of Ford-Fulkerson Algorithm with integer capacities. Our aim is to come up with a polynomial time algorithm since the already existing FF is runs in $\Theta$(mc).
+\par
+Using the hints and template provided in the assignment, we are able to devise an algorithm for Poly-FF which acts as an upper bound for time complexity and maximum number of augmenting paths in the graph G. We would then state and prove a couple of lemmas to finally come up with the correlation among the two algorithms.
+
+\vspace{0cm}
+
+
+%  Sketch of Algorithm
+% \section{Sketch of Algorithm}
+
+% \subsection{Intuition}
+% In order to reconstruct the sequence of paths with the minimum cost, we first need to determine the minimum cost of the optimal sequence of paths. An argument as to why greedy is not the right approach here, can be: At each step the cost function depends on both K as well as the sum of $l(res[i])$. If K is some large constant, then the product dominates and if K is some small constant, then the summation term dominates. Hence, we can never break it into a smaller subproblem of some predetermined size in terms of b. We need to consider the costs of all subproblems, before making a decision as to which index should be last changed to minimise the cost. 
+
+% \subsection{Notations}
+% \begin{itemize}
+%     \item $G_{intersection}$ : For a particular run of i (line 6) and j (line 8), $G_{intersection}$ represents $(V,E_{i} \cap E_{i+1} ... \cap E_{j})$
+%     \item $P[i][j]$ : represents the shortest path between s and t in the graph $G_{intersection}$ upon BFS traversal
+%     \item $l[i][j]$ : represents the length of shortest path between s and t in $G_{intersection}$, i.e. $l[i][j]$ = $|P[i][j]|$ -1
+%     \item $costDP[i]$ : to hold minimum cost corresponding to the optimal paths obtained from G[0...i]
+%     \item $diffDP[i]$ : to hold the rightmost index on G[0...i] which differs from the previous optimal path.
+%     \item $res$ : array to hold the optimal(of min. cost) sequence of paths, while considering G[0..b]
+% \end{itemize}
+
+% Pseudocode
+
+\section{Pseudocode}
+
+\begin{algorithm}
+\caption{Ford-Fulkerson Algorithm in polynomial time for integer capacities}\label{euclid}
+\begin{algorithmic}[1]
+\Procedure{poly-FF}{$G,s,t$}
+    \State $f \gets 0$
+    \State $k \gets $ maximum capacity of any edge in G
+    \While{$k \geq 1$}
+        \While{\texttt{there exists a path of capacity $\geq k $ in $G_{f}$}}
+            \State \texttt{Let P be any path in $G_{f}$ with capacity at least k} 
+            \State $c \gets bottleneck(P)$ \Comment{This function returns the min-capacity in path P}
+            \ForAll{ $edge (x,y) \in P$}
+                \If{\texttt{(x,y) is a forward edge}}
+                    \State $f(x,y) \gets f(x,y)+c$
+                \EndIf
+                \If{\texttt{(x,y) is a backward edge}}
+                    \State $f(y,x) \gets f(y,x)-c$
+                \EndIf
+            \EndFor
+        \EndWhile
+        \State $k \gets k/2$
+    \EndWhile
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+
+% \section {Proof of Correctness}
+% \subsection{Recurrence Relation}
+% \textbf{Base Case : } Consider the case when b=0. In this case, we only have 1 graph, ie. $G[0]$. Since $G[0]$ is connected (given), there definitely exists atleast one s-t path in $G[0]$. The shortest s-t path in $G[0]$ will be obtained in $P[0][0]$, and its length will be $l[0][0]$. Now inside the for loop (line 11), $costDP[0]$ will be assigned $l[0][0]*1$ and $diffDP[0]$ will be assigned $-\infty$ which implies no change in the path, as expected. The res array finally stores the same path which is obtained in $P[0][0]$, which is also the expected optimal path, since we only have 1 graph.
+% %\par
+% \vspace{2mm}
+% \\
+% \textbf{Recurrence : } Since $G[i]$ is connected $\forall$ i $\in$ [0..b], we can be sure that there exists at least one s-t path in every $G[i]$. Now, for some arbitrary i $\in$ [0..b], if there is no change in the expected paths $res[0], res[1], ...res[b]$ then the expected result would be $cost(res[0], res[1], ...res[b])$ = $(i+1)*l[0][0] + K*(0)$. The factor of $K*0$ comes in because we have 0 changes among $res[0], res[1], ...res[b]$. Now, our algorithm calculates the currentCost variable to be $(j+1)*l[0][j] + l[j+1][i]*(i-j) + K$ (since $cost[j]=(j+1)*l[0][j]$ according to our induction hypothesis). This means that currentCost will always be greater than $costDP[i]$, hence our algorithm saves the result just like the base case, i.e., no change and all res[i] would have the optimal paths, stored in $P[0][0]$ (all the $P[i][j]$ would be same as $P[0][0]$, since no change ever occurred).
+% \par
+% Let's now consider the case where \textbf{not} all expected paths $res[0], res[1], ...res[i]$ are the same, i.e. atleast one change occurs in the sequence of optimal paths. According to our notation, $diffDP[i]$ represents the rightmost index on $G[0..i]$ where there is a change in the sequence of optimal paths. Now, optimal cost must be :
+% \begin{center}
+% $cost(res[0], res[1], ...res[b]) = cost(res[0],...,res[diffDP[i]])+l[diffDP[i]+1][i]*(i-diffDP[i])+K$
+% \end{center}
+% Here, $cost(res[0],...,res[diffDP[i]])$ takes care of all the changes before i. To account for that one change in the path between $G[diffDP[i]]$ and $G[diffDP[i]+1]$, we add a K. Finally, since no more changes occur from $diffDP[i]+1$ to i, their length costs are simply summed up. In order to come up with this cost, we need to find $diffDP[i]$, which minimizes the expected cost. To do this, we simply loop over all possible values of $diffDP[i]$, i.e., 0 to i-1 to consider all possible values of costs choosing minimum among them.
+% \vspace{2mm}
+% \\
+% The final recurrence, combining both the above cases can be written as:
+% \begin{center}
+% \framebox[1.1\width]{
+%     $costDP[i]=min\big((i+1)*l[0][i],\min_{0 \leq j \leq i-1}(costDP[j]+((i-j)*l[j+1][i])+K)\big)$}
+% \end{center}
+
+% \subsection{Substructure optimality proof}
+
+% The number of changes in the optimal solution is the number of subsections we have to break our problem into, where each subsection has the same path (hence a simple result). To get these subections, we break our problem into a subsection (from $diffDP[i]+1$ to i) and a smaller subproblem (mincost of $res[0...diffDP[i]]$). The subsection will trivially give an optimal solution, and we are left to calculate the optimal smaller subproblem which is similar to our original problem. Since we are calculating DP in a bottom-up fashion, if we claim that smaller subproblem gives an optimal solution, and our subsection (from $diffDP[i]+1$ to i) also gives optimal results(trivially), then we can claim that their sum gives us the optimal solution to our original (bigger) problem. It should be noted that the subproblem and subsection are independent, which is crucial in our claim of optimality. Base case for this situation would be when we hit no change, which reduces the entire problem into a subsection whose optimal solution can be found trivially. Hence, we have shown how the original problem can be broken into simpler and calculable subproblem and subsection.
+
+
+\section {Time Complexity Analysis}
+To do an overall time complexity analysis of this algorithm, we will approach in a step by step  fashion using the hints provided in the assignment. The methodical approach is summarized in the following subsections.
+
+\subsection{Lemma 1}
+
+\textbf{\textit{If f is the current value of the (s,t)-flow in G, then, $f \geq f_{max} - 2mk_{0}$, where $f_{max}$ is the maximum (s,t)-flow in the original graph G.}}
+\vspace{0.2cm}\\
+Proof : Let us assume the current flow to be f and value of k to be $k_{0}$ at the beginning of an iteration of the outermost while loop. We note that there is no change in the flow after the termination of the inner while loop in the previous iteration. Additionally, since k decreases to half of its previous value in every iteration, the previous value of k must have been $2 k_{0}$. Now we provide another claim, using which we will formalise the proof for lemma 1.
+
+\begin{mdframed}
+\subsubsection{Claim}
+\textbf{\textit{If $k_{0}$ is the value of k with which we had entered the outer while loop, then for some flow f at the end of the inner while loop, the maximum flow in the network G is upper bounded by $f+mk_{0}$}}
+\vspace{0.2cm}\\
+Proof: Let $f_{max}$ be the value of the maximum s-t flow in the given graph G. We aim to prove that $f+mk_0 \geq f_{max}$. This proof is quite similar to the proof described in class slides for max-flow min-cut theorem. There does not exist a s-t path bottlenecked by atleast $k_{0}$ in the graph $G_{f}$ at the end of the inner while loop because of the loop condition. This directly translates to the fact that all the s-t paths will have bottleneck capacity less than $k_0$ by the end of inner while loop. To formalize our proof, we take a cut (A,B) such that A comprises of all the the nodes u in G that can be reached from s in the graph $G_{f}$ through some path of bottleneck capacity atleast $k_0$. We define B to the the set of the nodes left (B becomes $V \setminus A$) and it consists of t since it wasn't a part of A. Thus our cut (A,B) is a valid s-t cut.
+\vspace{0.2cm}\\
+Claim: \textit{$c(u,v) < f(u,v) + k_0$ for every edge (u,v) in the graph G, s.t. u $\in$ A and v $\in$ B.} We prove this by contradiction. Assuming, this wasn't the case, then, $c(u,v) - f(u,v) \geq k_0$ and (u,v) would appear as a forward edge in $G_{f}$. Since there is a path of bottleneck capacity atleast $k_{0}$ from s to u, we may append this edge (u,v) to this path to obtain a path from s to v satisfying the bottleneck capacity constraints. By the way we have defined the set A, we see that v $\in$ A which gives us a contradiction. Thus our claim holds true. 
+\vspace{0.2cm}\\
+Claim: \textit{$f(u,v) < k_0$ for every edge (u,v) in the graph G, s.t. u $\in$ B and v $\in$ A.} We prove this by contradiction. Assuming, this wasn't the case, then, $f(u,v) \geq k_0$ and (v,u) would appear as a backward edge in $G_{f}$. Since there is a path of bottleneck capacity atleast $k_{0}$ from s to v, we may append this edge (v, u) to this path to obtain a path from s to u satisfying the bottleneck capacity constraints. By the way we have defined the set A, we see that u $\in$ A which gives us a contradiction. Thus our claim holds true.
+
+Having claimed that all outward edges \{(u,v) | u $\in$ A and v $\in$ B\}  satisfy $c(u,v) < f(u,v) + k_0$ and all inward edges \{(u',v') | v' $\in$ A and u' $\in$ B\}  satisfy $ f(u',v') < k_0$, we can reduce the flow f as follows:
+\begin{center}
+$f = f_{out}(A) - f_{in}(A)$
+$ = \sum\limits_{\substack{(u,v) \in E\\ u \in A\\ v \in B}} f(u,v) - \sum\limits_{\substack{(u',v') \in E\\ v' \in A\\ u' \in B}} f(u',v')$
+\vspace{2mm}\\
+$ > \sum\limits_{\substack{(u,v) \in E\\ u \in A\\ v \in B}} (c(u,v)-k_0) - \sum\limits_{\substack{(u',v') \in E\\ v' \in A\\ u' \in B}} k_0$
+\vspace{2mm}\\
+$ > \sum\limits_{\substack{(u,v) \in E\\ u \in A\\ v \in B}} c(u,v) - \Bigg( \sum\limits_{\substack{(u,v) \in E\\ u \in A\\ v \in B}} k_0 + \sum\limits_{\substack{(u',v') \in E\\ v' \in A\\ u' \in B}} k_0 \Bigg)$
+\vspace{2mm}\\
+$\geq c(A,B) - mk_0        ........(1)$
+\vspace{2mm}\\
+\framebox[1.1\width]{$\implies f + mk_0 \geq c(A,B) $} % if possible, make a box around this
+\end{center}
+
+In the equation (1), c(A,B) represents the capacity of the cut (A,B) while $mk_0$ upper bounds the bracketted part. Capacity of any s-t cut is an upper bound for the maximum value of flow in the network of graph G. Thus, we can say that, $f_{max} \leq c(A,B) \leq f + mk_0$ \framebox[1.1\width]{$\implies f_{max} \leq f + mk_0$} % box this
+\end{mdframed}
+
+Using the claim above and the fact that in the previous iteration, the value of k was 2$k_0$, we can say that, $f_{max} \leq f + m*(k) = f + 2mk_0 $. This proves the result of our lemma. \framebox[1.1\width]{$\implies f \geq f_{max} - 2mk_0$}
+
+\subsection{Lemma 2}
+\textbf{\textit{If the current value of k is $k_{0}$, the lower bound on the amount by which the flow increases in an iteration of the inner while loop is $k_{0}$}}
+\vspace{0.2cm}\\
+Proof : $k_{0}$ will either be the maximum capacity of any edge in G, or it will be lower than the maximum capacity. This is clear from the fact that in every iteration of the outer while loop, the value of k is being halved, ie. at any moment, the value of k is less than or equal to the maximum capacity of any edge in G. \\
+We choose a path P in $G_{f}$ such that it has a bottleneck capacity of atleast $k_{0}$.\\
+Now, we focus on the inner while loop. In every iteration, we increase the flow along any edge by c. We can directly use the fact that c is atleast $k_{0}$. Hence, during every iteration of the inner while loop, $\Delta f \geq k_{0}$, which is the lower bound.
+
+\subsection{Lemma 3}
+\textbf{\textit{The inner while loop will run for O(m) times only for some specific value of k (say $k_{0}$)}}
+\vspace{0.2cm}\\
+Proof : From lemma 1, we know that $f \geq f_{max}-2mk_{0}$. Also, in lemma 2, we proved that in every iteration of the inner while loop, the flow increases by atleast $k_{0}$. Since the value of flow in the network G, cannot exceed the maximum possible flow, it is a straightforward deduction that the inner while loop runs O(m) times.
+
+\subsection{Conclusion}
+\textbf{\textit{The running time of the algorithm Poly-FF(G,s,t) is $O(m^{2}log_{2}(c_{max}))$}}
+\vspace{0.2cm}\\
+Proof : Initial value of k is $c_{max}$, where $c_{max}$ is the maximum capacity of any edge in G. In every iteration of the outer while loop, the value of k is being halved. Hence, the outer while loop will run for $O(log_{2}(c_{max}))$ times. From lemma 3, we know that the inner while loop will run O(m) times. Now, we need to estimate the time complexity of the inner while loop. The maximum number of edges in the path P can be m, where m is the total number of edges in the network G. Hence, finding the bottleneck capacity will take $O(m)$ (we need to iterate on all edges in the path). Also, in the for loop, we iterate over all edges in the path. Thus the for loop will take $O(m)$. So, every iteration of the inner while loop takes $O(m+m)=O(m)$ time.\\
+\begin{center}
+\framebox[1.1\width]{Therefore, the final time complexity is $O(m*m*log_{2}(c_{max}))=O(m^2log_{2}(c_{max}))$}
+\end{center}
+which is a polynomial in the input size, as desired.
+\newpage
+\subsection{Correlation}
+\textbf{\textit{Worst case number of augmenting paths used in the modified Ford-Fulkerson Algorithm is upper bounded by the worst case number of augmenting paths used in Poly-FF(G,s,t)}}
+\vspace{0.2cm}\\
+Proof : We need to devise a correlation between the sequence of augmenting paths used in the modified Ford-Fulkerson Algorithm and the sequence of augmenting paths used in Poly-FF(G,s,t). To do so, we use induction on the index of the paths in the sequence. The inductive sketch is given below:
+
+\begin{mdframed}
+\subsubsection{Inductive Procedure}
+\textbf{\textit{For every sequence of augmenting paths used in modified Ford-Fulkerson Algorithm, there exists another sequence of augmenting paths used in Poly-FF(G,s,t), and the two sequences are identical.}}\vspace{0.2cm}\\
+\textbf{Setup} : Let the residual graph of Poly-FF(G,s,t) be $G_{f}$ and the residual graph of the modified Ford-Fulkerson algorithm be $G_{f}^{'}$.\vspace{0.2cm}\\ 
+\textbf{Induction Hypothesis} : For Poly-FF(G,s,t), there exists a sequence of paths $P_{1},P_{2}..P_{i}$, such that $G_{f}=G_{f}^{'}$\vspace{0.2cm}\\
+\textbf{Base Case} : Consider $i=1$. Before augmenting this path, the two residual graphs must have been the same (same as the original network). 
+By the modified FF algorithm, $P_{1}$ is one of the maximum bottleneck capacity augmenting paths of $G_{f}^{'}$. We look at the same path $P_{1}$ in the Poly-FF algorithm, and we define $k_{0}$ to be the maximum value of k such that $bottleneck(P_{1}) \geq k_{0}$. \\
+We claim that in the previous iterations of Poly-FF, no other path could have been chosen. To prove this, note that had some other path been chosen in some previous iteration, its capacity would have been greater than that of $P_{1}$. But, we know $P_{1}$ is one of the maximum bottleneck capacity augmenting paths of $G_{f}^{'}$ and since $G_{f}^{'}=G_{f}$, it is also one of the maximum bottleneck capacity augmenting paths of $G_{f}$. Thus, our claim is correct.\\
+Hence, for i=1, in Poly-FF, we can choose the path to be $P_{1}$. So, in this case, we chose the same path in both the algorithms, hence the residual graph updates must be exactly similar, or in other words, $G_{f}=G_{f}^{'}$ holds even after augmenting $P_{1}$.\vspace{0.2cm}\\
+\textbf{Inductive Step} : We now consider some case where $i > 1$. By the inductive hypothesis, for Poly-FF, there exists a sequence of paths $P_{1},P_{2}..P_{i-1}$ such that $G_{f}=G_{f}^{'}$. Let's say the modified FF algorithm now chooses the path $P_{i}$. Therefore, $P_{i}$ must be one of the maximum bottleneck capacity augmenting paths. Now we have 2 cases:
+\begin{enumerate}
+    \item \textbf{Case 1:} The current value of k in the Poly-FF algorithm is strictly less than the bottleneck capacity of the path $P_{i}$. In this case, we can simply choose the path $P_{i}$ in Poly-FF, and perform updates in the residual graph. For this case, since the residual graph was the same till after augmenting the first i-1 paths, and we augmented the same path in both the algorithms, the residual graph would still be the same. Thus, the induction hypothesis holds for this case.
+    \item \textbf{Case 2:} Here, the current value of k in the Poly-FF algorithm is not strictly less than the bottleneck capacity of the path $P_{i}$. Let the current value of k in the Poly-FF algorithm be $k^{'}$.
+    The outer while loop will run(without choosing any path) till the following condition is met:
+    \begin{center}
+        $k_{f} \leq bottleneck(P_{i}) \leq 2k_{f}$
+    \end{center}
+    We again claim, that during all the iterations where the value of k was decreased from $k'$ to $k_{f}$, no path would have been chosen by Poly-FF. Had some path been chosen, its maximum bottleneck capacity would have to be greater than $2k_{f}$, which is a contradiction. \\
+    Hence, we can choose $P_{i}$ in the Poly-FF algorithm. Since again, we chose the same path in both the algorithms, the updates in the residual graph would be the same, and again $G_{f}=G_{f}^{'}$. Hence, the induction hypothesis holds.
+\end{enumerate}
+\textbf{Termination} : If the modified Ford-Fulkerson Algorithm terminates (no path is found in $G_{f}^{'}$), the Poly-FF Algorithm is bound to terminate. This is because, since $G_{f}=G_{f}^{'}$, if modified FF algorithm cannot find a path from the source to the sink in the residual graph, it is guranteed that there is no path between the source and the sink in the residual graph. Hence, even Poly-FF terminates. 
+
+\end{mdframed}
+Using the inductive procedure, we can now show that for any sequence of augmenting paths used in the modified Ford-Fulkerson Algorithm, we have an identical sequence of augmenting paths in the Poly-FF Algorithm. This implies that the number of augmenting paths used in the modified FF algorithm will always be bounded by the number of augmenting paths used in the Poly-FF algorithm, which concludes the proof for correlation. 
+\vspace{0.2cm}\\
+From lemma 3, the inner while loop will run for $O(m)$ times only for some specific value of k (say $k_{0}$). This means for some $k_{0}$, the inner while loop uses at most $O(m)$ augmenting paths for every iteration of the outer while loop. We have also deduced in the conclusion that the outer while loop runs $O(log_{2}c_{max})$ times. So, the maximum number of augmenting paths used by Poly-FF is $O(mlog_{2}c_{max})$. Therefore, using the correlation which we just proved in the above section, we can safely conclude that the modified FF Algorithm uses $O(mlog_{2}c_{max})$ number of augmenting paths.
+% \begin{center}
+% % \begin{equation}
+% \framebox[1.1\width]{ Time Complexity of Preprocessing : $O(b^2*(m+n) +  b*m*log n)$}
+% % \end{equation}
+% \end{center}
+
+% \par Then, we calculate $costDP[i]$ and $diffDP[i]$ $\forall i \in [0..b]$. For each i, we run a loop from [1..i), in which we perform only $O(1)$ operations (assignment and comparison, O(1) each). Thus, the time complexity of this step is $O(b^{2})$. To retrieve the paths from diffDP array, we run a while loop whose number of iterations are bounded by O(b). Inside the loop, we make assignments to res in a for loop. Such assignments are again bounded by O(b). Thus, the time complexity of this while subsection is bounded by $O(b^2)$. Note that this is a loose upper bound.
+
+% \begin{center}
+% %\begin{equation}
+% \framebox[1.1\width]{ Time Complexity of Processing : $O(b^{2})$}
+% %\end{equation}
+% \end{center}
+\end{document}
